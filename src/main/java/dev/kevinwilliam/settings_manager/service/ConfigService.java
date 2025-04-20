@@ -64,27 +64,27 @@ public class ConfigService {
         return configRepository.findAllByEnvironment(environment);
     }
 
-    // Atualiza o valor de uma configuração ativa
-    public void updateConfig(String key, String value, String environment) {
-        Config config = configRepository.findByKeyAndEnvironmentAndActiveTrue(key, environment)
-                .orElseThrow(() -> new IllegalArgumentException("Configuração ativa não encontrada para atualização!"));
-        config.setValue(value);
-        configRepository.save(config);
+    // Atualiza o valor de uma configuração ativa com base em dois objetos Config
+    public void updateConfig(String id, Config newConfig) {
+        // Localiza a configuração existente pelo ID
+        Config existingConfig = configRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Configuração não encontrada para atualização!"));
+
+        // Atualiza os valores da configuração existente com os valores do novo objeto Config
+        existingConfig.setValue(newConfig.getValue());
+        existingConfig.setEnvironment(newConfig.getEnvironment()); // Se necessário
+        existingConfig.setKey(newConfig.getKey()); // Se necessário
+
+        // Salva a configuração atualizada
+        configRepository.save(existingConfig);
     }
 
-    // Desativa uma configuração (soft delete)
-    public void deactivateConfig(String key, String environment) {
-        Config config = configRepository.findByKeyAndEnvironmentAndActiveTrue(key, environment)
-                .orElseThrow(() -> new IllegalArgumentException("Configuração ativa não encontrada para desativação!"));
-        config.setActive(false);
-        configRepository.save(config);
-    }
 
-    // Alterna o status de uma configuração (ativa/inativa)
-    public void toggleConfigStatus(String key, String environment) {
-        Config config = configRepository.findByKeyAndEnvironment(key, environment)
+
+    public void toggleConfigStatus(String id, boolean active) {
+        Config config = configRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Configuração não encontrada para alteração de status!"));
-        config.setActive(!config.isActive());
+        config.setActive(active);
         configRepository.save(config);
     }
 }
